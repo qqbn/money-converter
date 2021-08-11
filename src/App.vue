@@ -30,8 +30,8 @@
         <div class="header2">
           <h1 class="h2">Money <span class="euro">€</span>onverter</h1>
           </div>
-        <Formula />
-        <List @isOpened="openBox($event)"/>
+        <Formula  />
+        <List @isOpened="openBox($event)" @whichId="dataToBox($event)" />
       </div>
        <div id="compare-box" class="compare-box">
 
@@ -41,14 +41,15 @@
           <div class="compare-section">
             <div class="small-boxes">
                 <div id="compare-small-box" class="compare-small-box">
-                     <p class="compare-small-box-p">11.03.2021 <span>100PLN WAS 26,05USD</span></p>
+                     <p class="compare-small-box-p"> {{this.historyDate}} <span>{{this.leftSelectHistory}} TO {{this.rigthSelectHisotry}} WAS {{this.currencyHistory}}</span></p>
                 </div>
                 <div id="compare-small-box" class="compare-small-box">
-                    <p class="compare-small-box-p">11.03.2021  <span>100PLN WAS 26,05USD</span></p>
+                    <p class="compare-small-box-p"> {{this.todayDate}}  <span>{{this.leftSelectHistory}} TO {{this.rigthSelectHisotry}} IS {{this.currencyToday}}</span></p>
                 </div>
             </div>
             <div class="arrow-box">
-              <img src="./assets/green-arrow.png" alt="arrow">
+              <img id="green-arrow" class="green-arrow" src="./assets/green-arrow.png" alt="arrow">
+              <img id="red-arrow" class="red-arrow" src="./assets/red-arrow.png" alt="arrow">
               <button id="button" @click="closeBox()">CLOSE</button>
             </div>
           </div>
@@ -69,9 +70,20 @@ export default {
   data(){
     return{
       darkMode: '',
+      dataHistory: [],
+      leftSelectHistory: null,
+      rigthSelectHisotry:null,
+      historyDate: null,
+      currencyHistory: null,
+      todayDate: null,
+      todayCurrency:null,
+      currencyToday:null,
     }
   },
   methods:{
+    setValue(n){
+      this.myReRender=n;
+    },
    smoothScroll(){
     var newTarget=document.querySelector('.h2');
     var targetPosition=newTarget.getBoundingClientRect().top;
@@ -144,6 +156,35 @@ export default {
       document.getElementById("first-page").style.filter="blur(0)";
       document.getElementById("second-page").style.filter="blur(0)";
       document.getElementById("compare-box").style.visibility="hidden";
+      document.getElementById("green-arrow").classList.remove('show-arrow');
+      document.getElementById("red-arrow").classList.remove('show-arrow');
+    },
+    dataToBox(n){
+      if(n){
+        this.dataHistory=JSON.parse(localStorage.getItem('currencyHistory'));
+      }
+      this.dataHistory.forEach(element => {
+        if(element.id===n){
+          this.historyDate=element.date;
+          this.leftSelectHistory=element.leftCurrency;
+          this.rigthSelectHisotry=element.rightCurrency;
+          this.currencyHistory=element.currentRate.toFixed(2);
+        }
+      });
+      fetch(`https://free.currconv.com/api/v7/convert?q=${this.leftSelectHistory}_${this.rigthSelectHisotry}&compact=ultra&apiKey=244ce8c22fd118e3b024`)
+            .then(res => res.json())
+            .then(data => this.todayData(data))
+            .catch(err => console.log(err.message));
+            if(this.currencyHistory>this.currencyToday){
+              document.getElementById("green-arrow").classList.add("show-arrow");
+            }else{
+              document.getElementById("red-arrow").classList.add("show-arrow");
+            }
+    },
+    todayData(data){
+      this.currencyToday=data[Object.keys(data)[0]].toFixed(2);
+      this.currencyToday;
+      this.todayDate=new Date().toISOString().slice(0,10);
     }
   },
   mounted(){
@@ -199,6 +240,7 @@ export default {
     text-decoration: underline;
     text-decoration-color: #0A8845;
     margin-top: 20px;
+    font-family: 'Montserrat', sans-serif;
 }
 .compare-section{
     width: 100%;
@@ -214,6 +256,9 @@ height: 50%;
 display: flex;
 justify-content: center;
 align-items: center;
+}
+.show-arrow{
+  display: flex !important;
 }
 .compare-small-box{
     width: 50%;
@@ -242,6 +287,7 @@ align-items: center;
 .arrow-box img{
     height: 100px;
     width: 100px;
+    display: none;
 }
 .arrow-box button{
     margin-top: 20px;
@@ -252,7 +298,7 @@ align-items: center;
     background-repeat:no-repeat;
     cursor: pointer;
     color: black;
-    border-bottom: 1px solid #0A8845;
+    border-bottom: 4px solid #0A8845;
     font-family: 'Montserrat', sans-serif;
     font-weight: bold;
 }

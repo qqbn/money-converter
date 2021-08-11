@@ -1,45 +1,13 @@
 <template>
-<div id="main-list">
-    <div class="dashboard">
+<div id="main-list" >
+    <div class="dashboard" >
         <ul class="list">
-            <li class="row" @click="openCompareBox()">
+            <li class="row" @click="openCompareBox(currencyData[n].id)" v-for="(date, n) in currencyData" :key="date.id" >
                 <div class="left-box">
-                    100PLN was 26,05USD
+                    {{currencyData[n].leftCurrency}} to {{currencyData[n].rightCurrency}} was {{currencyData[n].currentRate}}
                 </div>
                 <div class="right-box">
-                    30.07.2021
-                </div>
-            </li>
-            <li class="row">
-                <div class="left-box">
-                    100PLN was 26,05USD
-                </div>
-                <div class="right-box">
-                    30.07.2021
-                </div>
-            </li>
-            <li class="row">
-                <div class="left-box">
-                    100PLN was 26,05USD
-                </div>
-                <div class="right-box">
-                    30.07.2021
-                </div>
-            </li>
-            <li class="row">
-                <div class="left-box">
-                    100PLN was 26,05USD
-                </div>
-                <div class="right-box">
-                    30.07.2021
-                </div>
-            </li>
-            <li class="row">
-                <div class="left-box">
-                    100PLN was 26,05USD
-                </div>
-                <div class="right-box">
-                    30.07.2021
+                    {{currencyData[n].date}}
                 </div>
             </li>
         </ul>
@@ -49,8 +17,8 @@
 
 <script>
 export default {
-    props:{
-        whatTheme: Boolean,
+    props: {
+
     },
     data(){
         return{
@@ -60,12 +28,15 @@ export default {
             header:'',
             smallBox:'',
             isOpened: false,
+            currencyData: [],
+            actualCounter:0,
         }
     },
+
 methods:{
-    openCompareBox(){
-        console.log(this.isOpened);
+    openCompareBox(n){
         this.$emit('isOpened',this.isOpened);
+        this.$emit('whichId',n);
     },
     closeCompareBox(){
         this.bckColor=document.querySelector('.compare-box');
@@ -82,6 +53,11 @@ methods:{
         this.smallBox.forEach(element => {element.style.color="black";});
         this.button.style.color="black";
         this.header.style.color="black";
+    },
+},
+mounted(){
+    if(localStorage.getItem("currencyHistory")){
+        this.currencyData=JSON.parse(localStorage.getItem("currencyHistory"));
     }
 },
 

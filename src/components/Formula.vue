@@ -1,17 +1,15 @@
 <template>
 <div id="formula-main">
 <div class="formula-box">
-    <select name="left-select" id="left-select" class="selects">
-        <option value="PLN">PLN</option>
-        <option value="USD">USD</option>
+    <select name="left-select" id="left-select" class="selects" v-model="currencyFrom">
+        <option v-for="currency in currencies" :key="currency.id" :value="currency.id">{{ currency.id }}</option>
     </select>
-    <input type="number" class="input-number input-left" placeholder="0" onfocus="''">
-    <button id="submit" class="submit"></button>
-    <button id="submit" class="submit2">SUBMIT</button>
-    <input disabled type="number" class="input-number input-right" placeholder="0" >
-    <select name="rigth-select" id="right-select" class="selects">
-        <option value="USD">USD</option>
-        <option value="PLN">PLN</option>
+    <input type="number" class="input-number input-left" placeholder="0" onfocus="''" v-model="valueFrom">
+    <button id="submit" class="submit" @click="convertMoney()"></button>
+    <button id="submit" class="submit2" @click="convertMoney()">SUBMIT</button>
+    <input disabled type="number" class="input-number input-right" placeholder="0" v-model="valueTo">
+    <select name="rigth-select" id="right-select" class="selects" v-model="currencyTo">
+        <option v-for="currency in currencies" :key="currency.id" :value="currency.id">{{ currency.id }}</option>
     </select>
 </div>
 <h3>tap here to convert</h3>
@@ -21,7 +19,62 @@
 <script>
 //import gsap from 'gsap'
 export default {
+    data(){
+        return{
+            currencies: [],
+            currencyFrom: null,
+            currencyTo: null,
+            valueFrom: null,
+            valueTo: null,
+            currencyRate: null,
+            todayDate: null,
+            currencyHistory: [ ],
+        }
+        },
+    methods:{
+        convert(data){
+            this.currencyRate=data[Object.keys(data)[0]];
+            this.valueTo=(this.valueFrom*this.currencyRate).toFixed(2);
+            this.todayDate=new Date().toISOString().slice(0,10);
+            if(this.currencyHistory.length>4){
+                this.currencyHistory.shift();
+            }
+            this.currencyHistory.push({
+                id: Math.floor(Math.random() * 100000),
+                date: this.todayDate,
+                leftCurrency: this.currencyFrom,
+                rightCurrency: this.currencyTo,
+                currentRate: this.currencyRate,
+             });
+             this.$emit('newConvert',this.currencyHistory);
+             this.saveData();
+            },
+        getCurrencies(){
+            fetch('https://free.currconv.com/api/v7/currencies?apiKey=244ce8c22fd118e3b024')
+            .then(res => res.json())
+            .then(data => this.currencies=data.results)
+            .catch(err => console.log(err.message));
+        },
+        convertMoney(){
+            fetch(`https://free.currconv.com/api/v7/convert?q=${this.currencyFrom}_${this.currencyTo}&compact=ultra&apiKey=244ce8c22fd118e3b024`)
+            .then(res => res.json())
+            .then(data => this.convert(data))
+            .catch(err => console.log(err.message));
+        },
+        saveData(){
+            const parsed = JSON.stringify(this.currencyHistory);
+            localStorage.setItem('currencyHistory', parsed);
+        },
 
+    },
+    mounted(){
+        if(!localStorage.getItem('currencyHistory')){
+            localStorage.setItem('currencyHistory',this.currencyHistory);
+        }else{
+            this.currencyHistory=JSON.parse(localStorage.getItem("currencyHistory"));
+        }
+        this.getCurrencies();
+    }
 }
 </script>
 
@@ -85,7 +138,8 @@ export default {
     color: transparent;
 }
 .input-right:disabled{
-    background: #f7f7f7;
+    background: #bef7d9;
+    color: grey;
 }
 .submit{
     width: 100px;
@@ -181,13 +235,13 @@ h3{
     }
     .selects{
         width: 100px;
-        height: 30px;
+        height: 40px;
         font-size: 26px;
         border-radius: 20px;
    }
    .input-number{
-       width: 100px;
-       height: 30px;
+       width: 120px;
+       height: 40px;
        font-size: 28px;
    }
 
