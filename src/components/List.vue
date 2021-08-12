@@ -4,7 +4,7 @@
         <ul class="list">
             <li class="row" @click="openCompareBox(currencyData[n].id)" v-for="(date, n) in currencyData" :key="date.id" >
                 <div class="left-box">
-                    {{currencyData[n].leftCurrency}} to {{currencyData[n].rightCurrency}} was {{currencyData[n].currentRate}}
+                    {{currencyData[n].leftCurrency}} to {{currencyData[n].rightCurrency}} was {{currencyData[n].currentRate.toFixed(2)}}
                 </div>
                 <div class="right-box">
                     {{currencyData[n].date}}
@@ -17,9 +17,7 @@
 
 <script>
 export default {
-    props: {
-
-    },
+    props: ['currencyData'],
     data(){
         return{
             whatColor:'',
@@ -28,8 +26,6 @@ export default {
             header:'',
             smallBox:'',
             isOpened: false,
-            currencyData: [],
-            actualCounter:0,
         }
     },
 
@@ -56,9 +52,7 @@ methods:{
     },
 },
 mounted(){
-    if(localStorage.getItem("currencyHistory")){
-        this.currencyData=JSON.parse(localStorage.getItem("currencyHistory"));
-    }
+
 },
 
 }

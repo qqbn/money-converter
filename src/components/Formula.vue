@@ -17,18 +17,17 @@
 </template>
 
 <script>
-//import gsap from 'gsap'
 export default {
     data(){
         return{
             currencies: [],
-            currencyFrom: null,
-            currencyTo: null,
+            currencyFrom: 'EUR',
+            currencyTo: 'USD',
             valueFrom: null,
             valueTo: null,
             currencyRate: null,
             todayDate: null,
-            currencyHistory: [ ],
+            currencyHistory: [],
         }
         },
     methods:{
@@ -46,7 +45,6 @@ export default {
                 rightCurrency: this.currencyTo,
                 currentRate: this.currencyRate,
              });
-             this.$emit('newConvert',this.currencyHistory);
              this.saveData();
             },
         getCurrencies(){
@@ -60,6 +58,7 @@ export default {
             .then(res => res.json())
             .then(data => this.convert(data))
             .catch(err => console.log(err.message));
+            this.$emit('newConvert',this.currencyHistory);
         },
         saveData(){
             const parsed = JSON.stringify(this.currencyHistory);

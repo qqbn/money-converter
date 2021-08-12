@@ -30,8 +30,8 @@
         <div class="header2">
           <h1 class="h2">Money <span class="euro">€</span>onverter</h1>
           </div>
-        <Formula  />
-        <List @isOpened="openBox($event)" @whichId="dataToBox($event)" />
+        <Formula  @newConvert="setData($event)"/>
+        <List @isOpened="openBox($event)" @whichId="dataToBox($event)" :currencyData="currencyData"/>
       </div>
        <div id="compare-box" class="compare-box">
 
@@ -78,11 +78,12 @@ export default {
       todayDate: null,
       todayCurrency:null,
       currencyToday:null,
+      currencyData: [],
     }
   },
   methods:{
-    setValue(n){
-      this.myReRender=n;
+    setData(n){
+      this.currencyData=n;
     },
    smoothScroll(){
     var newTarget=document.querySelector('.h2');
@@ -144,7 +145,6 @@ export default {
       localStorage.setItem("darkMode","disabled");
     },
     openBox(isOpened){
-      console.log(isOpened);
       if(isOpened==false){
       document.getElementById("first-page").style.filter="blur(5px)";
       document.getElementById("second-page").style.filter="blur(5px)";
@@ -152,7 +152,6 @@ export default {
       }
     },
     closeBox(){
-      console.log('test');
       document.getElementById("first-page").style.filter="blur(0)";
       document.getElementById("second-page").style.filter="blur(0)";
       document.getElementById("compare-box").style.visibility="hidden";
@@ -160,34 +159,37 @@ export default {
       document.getElementById("red-arrow").classList.remove('show-arrow');
     },
     dataToBox(n){
-      if(n){
-        this.dataHistory=JSON.parse(localStorage.getItem('currencyHistory'));
-      }
+      this.dataHistory=this.currencyData;
       this.dataHistory.forEach(element => {
         if(element.id===n){
           this.historyDate=element.date;
           this.leftSelectHistory=element.leftCurrency;
           this.rigthSelectHisotry=element.rightCurrency;
-          this.currencyHistory=element.currentRate.toFixed(2);
+          this.currencyHistory=element.currentRate;
         }
       });
       fetch(`https://free.currconv.com/api/v7/convert?q=${this.leftSelectHistory}_${this.rigthSelectHisotry}&compact=ultra&apiKey=244ce8c22fd118e3b024`)
             .then(res => res.json())
             .then(data => this.todayData(data))
             .catch(err => console.log(err.message));
-            if(this.currencyHistory>this.currencyToday){
-              document.getElementById("green-arrow").classList.add("show-arrow");
-            }else{
-              document.getElementById("red-arrow").classList.add("show-arrow");
-            }
     },
     todayData(data){
-      this.currencyToday=data[Object.keys(data)[0]].toFixed(2);
-      this.currencyToday;
+      this.currencyToday=data[Object.keys(data)[0]];
+      console.log(this.currencyToday+'pobranie z api');
       this.todayDate=new Date().toISOString().slice(0,10);
-    }
+      console.log(this.currencyHistory);
+      console.log(this.currencyToday);
+      if(this.currencyHistory<this.currencyToday){
+              document.getElementById("red-arrow").classList.add("show-arrow");
+            }else{
+              document.getElementById("green-arrow").classList.add("show-arrow");
+            }
+    },
   },
   mounted(){
+     if(localStorage.getItem("currencyHistory")){
+        this.currencyData=JSON.parse(localStorage.getItem("currencyHistory"));
+    }
     this.darkMode=localStorage.getItem("darkMode")
      if(this.darkMode==="enabled"){
        console.log(this.darkMode);
@@ -195,6 +197,7 @@ export default {
      }else{
        console.log(this.darkMode);
      }
+
     }
 }
 </script>
